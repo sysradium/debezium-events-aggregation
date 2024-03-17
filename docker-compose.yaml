@@ -1,0 +1,53 @@
+version: '3.7'
+
+services:
+  consumer:
+    image: golang:1.22.1-alpine
+    volumes:
+      - "./service:/usr/src/app"
+
+  mysql:
+    image: mysql:8.2
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_USER: debezium
+      MYSQL_PASSWORD: dbz
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+
+  debezium:
+    image: debezium/server
+    environment:
+      DEBEZIUM_SOURCE_TOPIC_PREFIX: "debezium"
+      DEBEZIUM_SOURCE_DATABASE_SERVER_ID: "1"
+      DEBEZIUM_LOG_LEVEL: "INFO"
+      DEBEZIUM_SINK_TYPE: "redis"
+      DEBEZIUM_SOURCE_PROVIDE_TRANSACTION_METADATA: "true"
+      DEBEZIUM_SINK_REDIS_ADDRESS: "redis:6379"
+      DEBEZIUM_SINK_REDIS_WAIT_RETRY_ENABLED: "true"
+      DEBEZIUM_SINK_REDIS_MESSAGE_FORMAT: "extended"
+      DEBEZIUM_SOURCE_CONNECTOR_CLASS: "io.debezium.connector.mysql.MySqlConnector"
+      DEBEZIUM_SOURCE_DATABASE_HOSTNAME: "mysql"
+      DEBEZIUM_SOURCE_DATABASE_PORT: "3306"
+      DEBEZIUM_SOURCE_DATABASE_USER: "debezium"
+      DEBEZIUM_SOURCE_DATABASE_PASSWORD: "dbz"
+      DEBEZIUM_SOURCE_DATABASE_SERVER_NAME: "dbserver1"
+      DEBEZIUM_SOURCE_DATABASE_INCLUDE_LIST: "applications"
+      DEBEZIUM_SOURCE_OFFSET_STORAGE: "io.debezium.storage.redis.offset.RedisOffsetBackingStore"
+      DEBEZIUM_SOURCE_SCHEMA_HISTORY_INTERNAL: "io.debezium.storage.redis.history.RedisSchemaHistory"
+    volumes:
+      - debezium-data:/debezium/data
+    depends_on:
+      - mysql
+      - redis
+
+volumes:
+  mysql-data:
+  debezium-data:
