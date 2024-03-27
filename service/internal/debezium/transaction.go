@@ -1,4 +1,4 @@
-package models
+package debezium
 
 type Transaction struct {
 	ID                  string `json:"id"`

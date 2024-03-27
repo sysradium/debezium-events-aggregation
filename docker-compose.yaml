@@ -1,6 +1,19 @@
 version: '3.7'
 
 services:
+  monolith:
+    build:
+      context: ./monolith
+    ports:
+      - "127.0.0.1:8080:80"
+    environment:
+      DB_USER: debezium
+      DB_PASS: dbz
+      DB_NAME: monolith
+      DB_HOST: mysql
+    volumes:
+      - "./monolith:/usr/src/app"
+
   consumer:
     image: golang:1.22.1-alpine
     volumes:
@@ -39,7 +52,7 @@ services:
       DEBEZIUM_SOURCE_DATABASE_USER: "debezium"
       DEBEZIUM_SOURCE_DATABASE_PASSWORD: "dbz"
       DEBEZIUM_SOURCE_DATABASE_SERVER_NAME: "dbserver1"
-      DEBEZIUM_SOURCE_DATABASE_INCLUDE_LIST: "applications"
+      DEBEZIUM_SOURCE_DATABASE_INCLUDE_LIST: "monolith"
       DEBEZIUM_SOURCE_OFFSET_STORAGE: "io.debezium.storage.redis.offset.RedisOffsetBackingStore"
       DEBEZIUM_SOURCE_SCHEMA_HISTORY_INTERNAL: "io.debezium.storage.redis.history.RedisSchemaHistory"
     volumes:

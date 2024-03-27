@@ -1,4 +1,4 @@
-package main
+package connectors
 
 import (
 	"context"
@@ -6,13 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
-	"github.com/ThreeDotsLabs/watermill"
-	"github.com/ThreeDotsLabs/watermill-redisstream/pkg/redisstream"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/redis/go-redis/v9"
@@ -40,6 +35,11 @@ type TransactionManager struct {
 	rClient *redis.Client
 }
 
+func New(c *redis.Client) *TransactionManager {
+	return &TransactionManager{
+		rClient: c,
+	}
+}
 func (t *TransactionManager) Process(messages <-chan *message.Message) {
 
 	for msg := range messages {
@@ -123,51 +123,4 @@ func (t *TransactionManager) ProcessTransacations(ctx context.Context, messages 
 		msg.Ack()
 
 	}
-}
-
-func main() {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	subClient := redis.NewClient(&redis.Options{
-		Addr: "redis:6379",
-		DB:   0,
-	})
-	t := TransactionManager{
-		rClient: subClient,
-	}
-
-	subscriber, err := redisstream.NewSubscriber(
-		redisstream.SubscriberConfig{
-			Client:        subClient,
-			Unmarshaller:  RedisStreamUnmarshaler{},
-			ConsumerGroup: "test_consumer_group",
-		},
-		watermill.NewStdLogger(false, false),
-	)
-
-	for _, topic := range []string{
-		"debezium.applications.users",
-		"debezium.applications.applications",
-	} {
-		messages, err := subscriber.Subscribe(ctx, topic)
-		if err != nil {
-			log.Panic(err)
-		}
-
-		go t.Process(messages)
-	}
-
-	transactions, err := subscriber.Subscribe(ctx, "debezium.transaction")
-	if err != nil {
-		log.Panic(err)
-	}
-	go t.ProcessTransacations(ctx, transactions)
-
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-
-	<-sigs
-
-	subscriber.Close()
 }
