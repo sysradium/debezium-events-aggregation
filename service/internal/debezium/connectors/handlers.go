@@ -7,16 +7,21 @@ import (
 	"log"
 
 	"github.com/ThreeDotsLabs/watermill/message"
+	"github.com/davecgh/go-spew/spew"
+	"github.com/sysradium/debezium-events-aggregation/service/internal/app"
+	"github.com/sysradium/debezium-events-aggregation/service/internal/app/commands"
 	"github.com/sysradium/debezium-events-aggregation/service/internal/debezium"
 )
 
 type AuthUserHandler struct {
-	ch <-chan *message.Message
+	ch  <-chan *message.Message
+	app *app.App
 }
 
-func NewAuthUserHandler(ch <-chan *message.Message) *AuthUserHandler {
+func NewAuthUserHandler(ch <-chan *message.Message, a *app.App) *AuthUserHandler {
 	return &AuthUserHandler{
-		ch: ch,
+		ch:  ch,
+		app: a,
 	}
 }
 
@@ -26,7 +31,10 @@ func (a *AuthUserHandler) Start(ctx context.Context) {
 			select {
 			case <-ctx.Done():
 				return
-			case msg := <-a.ch:
+			case msg, ok := <-a.ch:
+				if !ok {
+					return
+				}
 				if err := a.Handle(msg); err != nil {
 					log.Printf("unable to process message: %v", err)
 				}
@@ -46,9 +54,20 @@ func (a *AuthUserHandler) Handle(msg *message.Message) error {
 		return fmt.Errorf("unable to unamrshal user: %w", err)
 	}
 
+	spew.Dump(u)
 	switch e.Payload.Op {
 	case debezium.OPERATION_CREATE:
-		fmt.Println("creating new user")
+		a.app.Commands.CreateUser.Handle(
+			context.Background(),
+			commands.CreateUser{
+				ID:          int64(u.ID),
+				Password:    u.Password,
+				Username:    u.Username,
+				FirstName:   u.FirstName,
+				LastName:    u.LastName,
+				Email:       u.Email,
+			},
+		)
 	case debezium.OPERATION_SNAPSHOT:
 		fmt.Println("a user from snapshot")
 	case debezium.OPERATION_DELETE:
@@ -56,6 +75,8 @@ func (a *AuthUserHandler) Handle(msg *message.Message) error {
 	case debezium.OPERATION_UPDATE:
 		fmt.Println("changing user")
 	}
+
+	msg.Ack()
 
 	return nil
 }

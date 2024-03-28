@@ -6,6 +6,7 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/stretchr/testify/require"
+	"github.com/sysradium/debezium-events-aggregation/service/internal/app"
 	"github.com/sysradium/debezium-events-aggregation/service/internal/debezium/connectors"
 )
 
@@ -14,7 +15,7 @@ func TestAuthHandlerBasicTest(t *testing.T) {
 	require.NoError(t, err)
 
 	ch := make(chan *message.Message)
-	conn := connectors.NewAuthUserHandler(ch)
+	conn := connectors.NewAuthUserHandler(ch, &app.App{})
 
 	msg := message.NewMessage(
 		"e35e3746-43e2-4c38-97eb-90d6dfcab239",
