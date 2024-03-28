@@ -28,11 +28,20 @@ type Parameters struct {
 	Allowed string `json:"allowed"`
 }
 
+type Operation string
+
+const (
+	OPERATION_SNAPSHOT Operation = "r"
+	OPERATION_UPDATE             = "u"
+	OPERATION_CREATE             = "c"
+	OPERATION_DELETE             = "d"
+)
+
 type Payload struct {
 	Before      json.RawMessage `json:"before"`
 	After       json.RawMessage `json:"after"`
 	Source      Source          `json:"source"`
-	Op          string          `json:"op"`
+	Op          Operation       `json:"op"`
 	TsMs        int64           `json:"ts_ms"`
 	Transaction Transaction     `json:"transaction"`
 }

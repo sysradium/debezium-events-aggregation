@@ -22,7 +22,6 @@ func main() {
 		Addr: "redis:6379",
 		DB:   0,
 	})
-	t := connectors.New(subClient)
 
 	subscriber, err := redisstream.NewSubscriber(
 		redisstream.SubscriberConfig{
@@ -32,28 +31,31 @@ func main() {
 		},
 		watermill.NewStdLogger(false, false),
 	)
-
-	for _, topic := range []string{
-		"debezium.auth_user",
-	} {
-		messages, err := subscriber.Subscribe(ctx, topic)
-		if err != nil {
-			log.Panic(err)
-		}
-
-		go t.Process(messages)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	transactions, err := subscriber.Subscribe(ctx, "debezium.transaction")
+	defer subscriber.Close()
+
+	messages, err := subscriber.Subscribe(ctx, "debezium.monolith.auth_user")
 	if err != nil {
 		log.Panic(err)
 	}
-	go t.ProcessTransacations(ctx, transactions)
+
+	handler := connectors.NewAuthUserHandler(messages)
+	handler.Start(ctx)
+	/*
+		t := connectors.New(subClient)
+		transactions, err := subscriber.Subscribe(ctx, "debezium.transaction")
+		if err != nil {
+			log.Panic(err)
+		}
+		go t.ProcessTransacations(ctx, transactions)
+	*/
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
 	<-sigs
 
-	subscriber.Close()
 }

@@ -1,0 +1,303 @@
+{
+	"schema": {
+		"type": "struct",
+		"fields": [
+			{
+				"type": "struct",
+				"fields": [
+					{
+						"type": "int32",
+						"optional": false,
+						"field": "id"
+					},
+					{
+						"type": "string",
+						"optional": false,
+						"field": "password"
+					},
+					{
+						"type": "int64",
+						"optional": true,
+						"name": "io.debezium.time.MicroTimestamp",
+						"version": 1,
+						"field": "last_login"
+					},
+					{
+						"type": "int16",
+						"optional": false,
+						"field": "is_superuser"
+					},
+					{
+						"type": "string",
+						"optional": false,
+						"field": "username"
+					},
+					{
+						"type": "string",
+						"optional": false,
+						"field": "first_name"
+					},
+					{
+						"type": "string",
+						"optional": false,
+						"field": "last_name"
+					},
+					{
+						"type": "string",
+						"optional": false,
+						"field": "email"
+					},
+					{
+						"type": "int16",
+						"optional": false,
+						"field": "is_staff"
+					},
+					{
+						"type": "int16",
+						"optional": false,
+						"field": "is_active"
+					},
+					{
+						"type": "int64",
+						"optional": false,
+						"name": "io.debezium.time.MicroTimestamp",
+						"version": 1,
+						"field": "date_joined"
+					}
+				],
+				"optional": true,
+				"name": "debezium.monolith.auth_user.Value",
+				"field": "before"
+			},
+			{
+				"type": "struct",
+				"fields": [
+					{
+						"type": "int32",
+						"optional": false,
+						"field": "id"
+					},
+					{
+						"type": "string",
+						"optional": false,
+						"field": "password"
+					},
+					{
+						"type": "int64",
+						"optional": true,
+						"name": "io.debezium.time.MicroTimestamp",
+						"version": 1,
+						"field": "last_login"
+					},
+					{
+						"type": "int16",
+						"optional": false,
+						"field": "is_superuser"
+					},
+					{
+						"type": "string",
+						"optional": false,
+						"field": "username"
+					},
+					{
+						"type": "string",
+						"optional": false,
+						"field": "first_name"
+					},
+					{
+						"type": "string",
+						"optional": false,
+						"field": "last_name"
+					},
+					{
+						"type": "string",
+						"optional": false,
+						"field": "email"
+					},
+					{
+						"type": "int16",
+						"optional": false,
+						"field": "is_staff"
+					},
+					{
+						"type": "int16",
+						"optional": false,
+						"field": "is_active"
+					},
+					{
+						"type": "int64",
+						"optional": false,
+						"name": "io.debezium.time.MicroTimestamp",
+						"version": 1,
+						"field": "date_joined"
+					}
+				],
+				"optional": true,
+				"name": "debezium.monolith.auth_user.Value",
+				"field": "after"
+			},
+			{
+				"type": "struct",
+				"fields": [
+					{
+						"type": "string",
+						"optional": false,
+						"field": "version"
+					},
+					{
+						"type": "string",
+						"optional": false,
+						"field": "connector"
+					},
+					{
+						"type": "string",
+						"optional": false,
+						"field": "name"
+					},
+					{
+						"type": "int64",
+						"optional": false,
+						"field": "ts_ms"
+					},
+					{
+						"type": "string",
+						"optional": true,
+						"name": "io.debezium.data.Enum",
+						"version": 1,
+						"parameters": {
+							"allowed": "true,last,false,incremental"
+						},
+						"default": "false",
+						"field": "snapshot"
+					},
+					{
+						"type": "string",
+						"optional": false,
+						"field": "db"
+					},
+					{
+						"type": "string",
+						"optional": true,
+						"field": "sequence"
+					},
+					{
+						"type": "string",
+						"optional": true,
+						"field": "table"
+					},
+					{
+						"type": "int64",
+						"optional": false,
+						"field": "server_id"
+					},
+					{
+						"type": "string",
+						"optional": true,
+						"field": "gtid"
+					},
+					{
+						"type": "string",
+						"optional": false,
+						"field": "file"
+					},
+					{
+						"type": "int64",
+						"optional": false,
+						"field": "pos"
+					},
+					{
+						"type": "int32",
+						"optional": false,
+						"field": "row"
+					},
+					{
+						"type": "int64",
+						"optional": true,
+						"field": "thread"
+					},
+					{
+						"type": "string",
+						"optional": true,
+						"field": "query"
+					}
+				],
+				"optional": false,
+				"name": "io.debezium.connector.mysql.Source",
+				"field": "source"
+			},
+			{
+				"type": "string",
+				"optional": false,
+				"field": "op"
+			},
+			{
+				"type": "int64",
+				"optional": true,
+				"field": "ts_ms"
+			},
+			{
+				"type": "struct",
+				"fields": [
+					{
+						"type": "string",
+						"optional": false,
+						"field": "id"
+					},
+					{
+						"type": "int64",
+						"optional": false,
+						"field": "total_order"
+					},
+					{
+						"type": "int64",
+						"optional": false,
+						"field": "data_collection_order"
+					}
+				],
+				"optional": true,
+				"name": "event.block",
+				"version": 1,
+				"field": "transaction"
+			}
+		],
+		"optional": false,
+		"name": "debezium.monolith.auth_user.Envelope",
+		"version": 1
+	},
+	"payload": {
+		"before": null,
+		"after": {
+			"id": 1,
+			"password": "pbkdf2_sha256$720000$tdF4izWnlafM9AUpca5t6Q$yK7pKnkzwcrUlrgpduL7SfXiL/v4XwpI4elLMzUbdCU=",
+			"last_login": null,
+			"is_superuser": 1,
+			"username": "root",
+			"first_name": "",
+			"last_name": "",
+			"email": "",
+			"is_staff": 1,
+			"is_active": 1,
+			"date_joined": 1711574604508044
+		},
+		"source": {
+			"version": "2.5.0.Final",
+			"connector": "mysql",
+			"name": "debezium",
+			"ts_ms": 1711574854000,
+			"snapshot": "last_in_data_collection",
+			"db": "monolith",
+			"sequence": null,
+			"table": "auth_user",
+			"server_id": 0,
+			"gtid": null,
+			"file": "binlog.000004",
+			"pos": 22668,
+			"row": 0,
+			"thread": null,
+			"query": null
+		},
+		"op": "r",
+		"ts_ms": 1711574854475,
+		"transaction": null
+	}
+}
