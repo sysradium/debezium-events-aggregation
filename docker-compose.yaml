@@ -18,6 +18,7 @@ services:
     image: golang:1.22.1-alpine
     volumes:
       - "./service:/usr/src/app"
+      - "$GOPATH/pkg/mod:/go/pkg/mod"
 
   mysql:
     image: mysql:8.2
