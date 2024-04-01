@@ -6,6 +6,7 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/stretchr/testify/require"
+	"github.com/sysradium/debezium-events-aggregation/service/internal/adapters/ephemeral"
 	"github.com/sysradium/debezium-events-aggregation/service/internal/app"
 	"github.com/sysradium/debezium-events-aggregation/service/internal/debezium/connectors"
 )
@@ -14,15 +15,17 @@ func TestAuthHandlerBasicTest(t *testing.T) {
 	payload, err := os.ReadFile("../fixtures/sample_snapshot_auth_user_payload.json")
 	require.NoError(t, err)
 
-	ch := make(chan *message.Message)
-	conn := connectors.NewAuthUserHandler(ch, &app.App{})
+	db, err := ephemeral.New()
+	require.NoError(t, err)
+
+	conn := connectors.NewAuthUserHandler(
+		make(chan *message.Message),
+		app.NewApplication(db),
+	)
 
 	msg := message.NewMessage(
 		"e35e3746-43e2-4c38-97eb-90d6dfcab239",
 		message.Payload(payload),
 	)
-	require.NoError(
-		t,
-		conn.Handle(msg),
-	)
+	require.NoError(t, conn.Handle(msg))
 }
