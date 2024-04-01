@@ -36,14 +36,18 @@ func (a *AuthUserHandler) Start(ctx context.Context) {
 					return
 				}
 
-				if bytes.Equal(msg.Payload, []byte("default")) {
-					fmt.Println("null payload, skip")
+				if isTumbstoneEvent(msg) {
 					msg.Ack()
 					continue
 				}
+
 				if err := a.Handle(msg); err != nil {
 					log.Printf("unable to process message: %v", err)
+					msg.Nack()
+					continue
 				}
+
+				msg.Ack()
 			}
 		}
 	}()
@@ -94,21 +98,9 @@ func (a *AuthUserHandler) Handle(msg *message.Message) error {
 		}
 	}
 
-	msg.Ack()
-
 	return nil
 }
 
-type User struct {
-	ID          int    `json:"id"`
-	Password    string `json:"password"`
-	LastLogin   *int64 `json:"last_login"`
-	IsSuperuser int    `json:"is_superuser"`
-	Username    string `json:"username"`
-	FirstName   string `json:"first_name"`
-	LastName    string `json:"last_name"`
-	Email       string `json:"email"`
-	IsStaff     uint   `json:"is_staff"`
-	IsActive    uint   `json:"is_active"`
-	DateJoined  int64  `json:"date_joined"`
+func isTumbstoneEvent(m *message.Message) bool {
+	return bytes.Equal(m.Payload, []byte("default"))
 }
