@@ -2,80 +2,88 @@ package ephemeral
 
 import (
 	"context"
-	"sync"
+	"fmt"
 
-	"github.com/google/uuid"
+	"github.com/glebarez/sqlite"
 	"github.com/sysradium/debezium-events-aggregation/service/internal/domain/users"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 var _ users.Repository = (*Ephemeral)(nil)
 
 type Ephemeral struct {
-	m *sync.RWMutex
-	s map[string]users.User
-
 	userFactory users.Factory
+	db          *gorm.DB
 }
 
 func (e *Ephemeral) Create(_ context.Context, o users.User) (*users.User, error) {
-	e.m.Lock()
-	defer e.m.Unlock()
-
-	userID := uuid.New()
-	o.ID = userID
-	e.s[userID.String()] = o
+	if err := e.db.Clauses(clause.OnConflict{UpdateAll: true}).Create(&o).Error; err != nil {
+		return nil, err
+	}
 
 	return &o, nil
 
 }
 
-func (e *Ephemeral) Get(_ context.Context, id uuid.UUID) (*users.User, error) {
-	e.m.RLock()
-	defer e.m.RUnlock()
-
-	if o, ok := e.s[id.String()]; ok {
-		return &o, nil
+func (e *Ephemeral) Get(_ context.Context, id int64) (*users.User, error) {
+	var user users.User
+	if err := e.db.Where("id = ?", id).First(&user).Error; err != nil {
+		return nil, err
 	}
 
-	return nil, users.ErrNotFound
+	return &user, nil
 }
 
 func (e *Ephemeral) List(_ context.Context) ([]*users.User, error) {
-	e.m.RLock()
-	defer e.m.RUnlock()
-
-	users := make([]*users.User, 0, len(e.s))
-
-	for _, o := range e.s {
-		o := o
-		users = append(users, &o)
+	var users []*users.User
+	if err := e.db.Find(&users).Error; err != nil {
+		return nil, err
 	}
 
 	return users, nil
 }
 
-func (e *Ephemeral) Update(ctx context.Context, id uuid.UUID, updateFn users.UpdaterFn) (*users.User, error) {
+func (e *Ephemeral) Update(ctx context.Context, id int64, updateFn users.UpdaterFn) (*users.User, error) {
 	user, err := e.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-
-	e.m.Lock()
-	defer e.m.Unlock()
 
 	updateduser, err := updateFn(user)
 	if err != nil {
 		return nil, err
 	}
 
-	e.s[id.String()] = *updateduser
+	if err := e.db.Save(&user).Error; err != nil {
+		return nil, err
+	}
 
 	return updateduser, nil
 }
 
-func New() *Ephemeral {
-	return &Ephemeral{
-		m: &sync.RWMutex{},
-		s: map[string]users.User{},
+func (e *Ephemeral) Delete(_ context.Context, id int64) error {
+	if err := e.db.Delete(&users.User{}, id).Error; err != nil {
+		return err
 	}
+
+	return nil
+
+}
+func New() (*Ephemeral, error) {
+	db, err := gorm.Open(
+		sqlite.Open("file::memory:?cache=shared"),
+		&gorm.Config{},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: fix this
+	if err := db.AutoMigrate(&users.User{}); err != nil {
+		return nil, fmt.Errorf("automigration for user failed: %w", err)
+	}
+	return &Ephemeral{
+		db: db,
+	}, nil
 }

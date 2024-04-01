@@ -26,7 +26,7 @@ func (c createUserHandler) Handle(ctx context.Context, cmd CreateUser) (*users.U
 	newUser, err := c.repository.Create(
 		ctx,
 		users.User{
-			UserID:      cmd.ID,
+			ID:          uint(cmd.ID),
 			Password:    cmd.Password,
 			IsSuperuser: cmd.IsSuperuser,
 			Username:    cmd.Username,

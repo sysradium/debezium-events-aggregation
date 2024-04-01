@@ -2,8 +2,6 @@ package users
 
 import (
 	"context"
-
-	"github.com/google/uuid"
 )
 
 type UpdaterFn func(*User) (*User, error)
@@ -13,10 +11,11 @@ type Repository interface {
 	Lister
 	Creator
 	Updater
+	Deleter
 }
 
 type Getter interface {
-	Get(context.Context, uuid.UUID) (*User, error)
+	Get(context.Context, int64) (*User, error)
 }
 
 type Lister interface {
@@ -28,5 +27,9 @@ type Creator interface {
 }
 
 type Updater interface {
-	Update(context.Context, uuid.UUID, UpdaterFn) (*User, error)
+	Update(context.Context, int64, UpdaterFn) (*User, error)
+}
+
+type Deleter interface {
+	Delete(context.Context, int64) error
 }

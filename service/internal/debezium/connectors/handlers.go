@@ -1,13 +1,13 @@
 package connectors
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 
 	"github.com/ThreeDotsLabs/watermill/message"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/sysradium/debezium-events-aggregation/service/internal/app"
 	"github.com/sysradium/debezium-events-aggregation/service/internal/app/commands"
 	"github.com/sysradium/debezium-events-aggregation/service/internal/debezium"
@@ -35,6 +35,12 @@ func (a *AuthUserHandler) Start(ctx context.Context) {
 				if !ok {
 					return
 				}
+
+				if bytes.Equal(msg.Payload, []byte("default")) {
+					fmt.Println("null payload, skip")
+					msg.Ack()
+					continue
+				}
 				if err := a.Handle(msg); err != nil {
 					log.Printf("unable to process message: %v", err)
 				}
@@ -46,34 +52,46 @@ func (a *AuthUserHandler) Start(ctx context.Context) {
 func (a *AuthUserHandler) Handle(msg *message.Message) error {
 	var e debezium.DebeziumEvent
 	if err := json.Unmarshal(msg.Payload, &e); err != nil {
-		return err
+		return fmt.Errorf("could not umarshal payload: %w", err)
 	}
 
-	var u User
-	if err := json.Unmarshal(e.Payload.After, &u); err != nil {
+	var au *User
+	if err := json.Unmarshal(e.Payload.After, &au); err != nil {
 		return fmt.Errorf("unable to unamrshal user: %w", err)
 	}
 
-	spew.Dump(u)
+	var bu *User
+	if err := json.Unmarshal(e.Payload.Before, &bu); err != nil {
+		return fmt.Errorf("unable to unamrshal user: %w", err)
+	}
+
 	switch e.Payload.Op {
-	case debezium.OPERATION_CREATE:
-		a.app.Commands.CreateUser.Handle(
+	case debezium.OPERATION_SNAPSHOT, debezium.OPERATION_CREATE, debezium.OPERATION_UPDATE:
+		_, err := a.app.Commands.CreateUser.Handle(
 			context.Background(),
 			commands.CreateUser{
-				ID:          int64(u.ID),
-				Password:    u.Password,
-				Username:    u.Username,
-				FirstName:   u.FirstName,
-				LastName:    u.LastName,
-				Email:       u.Email,
+				ID:          int64(au.ID),
+				Password:    au.Password,
+				Username:    au.Username,
+				FirstName:   au.FirstName,
+				LastName:    au.LastName,
+				Email:       au.Email,
+				IsSuperuser: au.IsSuperuser == 1,
 			},
 		)
-	case debezium.OPERATION_SNAPSHOT:
-		fmt.Println("a user from snapshot")
+		if err != nil {
+			return err
+		}
 	case debezium.OPERATION_DELETE:
-		fmt.Println("remove user")
-	case debezium.OPERATION_UPDATE:
-		fmt.Println("changing user")
+		_, err := a.app.Commands.DeleteUser.Handle(
+			context.Background(),
+			commands.DeleteUser{
+				ID: int64(bu.ID),
+			},
+		)
+		if err != nil {
+			return err
+		}
 	}
 
 	msg.Ack()
