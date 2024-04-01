@@ -26,31 +26,29 @@ func NewAuthUserHandler(ch <-chan *message.Message, a *app.App) *AuthUserHandler
 }
 
 func (a *AuthUserHandler) Start(ctx context.Context) {
-	go func() {
-		for {
-			select {
-			case <-ctx.Done():
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case msg, ok := <-a.ch:
+			if !ok {
 				return
-			case msg, ok := <-a.ch:
-				if !ok {
-					return
-				}
-
-				if isTumbstoneEvent(msg) {
-					msg.Ack()
-					continue
-				}
-
-				if err := a.Handle(msg); err != nil {
-					log.Printf("unable to process message: %v", err)
-					msg.Nack()
-					continue
-				}
-
-				msg.Ack()
 			}
+
+			if isTumbstoneEvent(msg) {
+				msg.Ack()
+				continue
+			}
+
+			if err := a.Handle(msg); err != nil {
+				log.Printf("unable to process message: %v", err)
+				msg.Nack()
+				continue
+			}
+
+			msg.Ack()
 		}
-	}()
+	}
 }
 
 func (a *AuthUserHandler) Handle(msg *message.Message) error {

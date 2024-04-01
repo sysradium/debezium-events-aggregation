@@ -54,7 +54,7 @@ func main() {
 	}
 
 	handler := connectors.NewAuthUserHandler(messages, a)
-	handler.Start(ctx)
+	go handler.Start(ctx)
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
