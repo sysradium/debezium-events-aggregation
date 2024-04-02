@@ -4,7 +4,7 @@ go 1.22.1
 
 require (
 	github.com/ThreeDotsLabs/watermill v1.2.0
-	github.com/ThreeDotsLabs/watermill-redisstream v1.2.2
+	github.com/ThreeDotsLabs/watermill-redisstream v1.3.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/glebarez/sqlite v1.11.0
 	github.com/google/uuid v1.3.0
@@ -42,5 +42,3 @@ require (
 	modernc.org/memory v1.5.0 // indirect
 	modernc.org/sqlite v1.23.1 // indirect
 )
-
-replace github.com/ThreeDotsLabs/watermill-redisstream => github.com/sysradium/watermill-redisstream v1.2.3-0.20240401083300-1a16e4eea46e
