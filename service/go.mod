@@ -3,13 +3,13 @@ module github.com/sysradium/debezium-events-aggregation/service
 go 1.22.1
 
 require (
-	github.com/ThreeDotsLabs/watermill v1.2.0
+	github.com/ThreeDotsLabs/watermill v1.3.5
 	github.com/ThreeDotsLabs/watermill-redisstream v1.3.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/glebarez/sqlite v1.11.0
-	github.com/google/uuid v1.3.0
+	github.com/google/uuid v1.6.0
 	github.com/redis/go-redis/v9 v9.2.1
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.4
 	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
 	gorm.io/gorm v1.25.9
 )
